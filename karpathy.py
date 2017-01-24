@@ -110,3 +110,21 @@ gradient_f_wrt_xyz = [derivative_f_wrt_x, derivative_f_wrt_y, derivative_f_wrt_z
 
 #Let inputs respond to the force/tug 
 step_size = 0.01 
+
+def backpropagation():
+	q, f = forwardCircuit(x, y, z)
+	#Multiplication gate
+	derivative_f_wrt_z = q 
+	derivative_f_wrt_q = z 
+
+	#Add gate 
+	derivative_q_wrt_x = 1.0 
+	derivative_q_wrt_y = 1.0 
+
+	#F with respect to x and y
+	derivative_f_wrt_x = derivative_q_wrt_y * derivative_f_wrt_q 
+	derivative_f_wrt_y = derivative_q_wrt_y * derivative_f_wrt_q 
+
+	gradient_f_wrt_xyz = [gradient_f_wrt_x, gradient_f_wrt_y, derivative_f_wrt_z]
+
+
