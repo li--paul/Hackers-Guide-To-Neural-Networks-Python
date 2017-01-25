@@ -40,6 +40,7 @@ randomLocalSearch(x, y)
 def numericalGradient(x, y):
 	h = 0.0001
 	out = forwardMultiplyGate(x, y)
+
 	#Derivative WRT x
 	xph = x + h
 	out2 = forwardMultiplyGate(xph, y)
@@ -97,8 +98,9 @@ print(f)
 
 #Backpropagation
 
-def backpropagation():
+def backpropagation(x, y, z):
 	q, f = forwardCircuit(x, y, z)
+	print(q, f)
 	#Multiplication gate
 	derivative_f_wrt_z = q 
 	derivative_f_wrt_q = z 
@@ -111,6 +113,85 @@ def backpropagation():
 	derivative_f_wrt_x = derivative_q_wrt_y * derivative_f_wrt_q 
 	derivative_f_wrt_y = derivative_q_wrt_y * derivative_f_wrt_q 
 
-	gradient_f_wrt_xyz = [gradient_f_wrt_x, gradient_f_wrt_y, derivative_f_wrt_z]
+	gradient_f_wrt_xyz = [derivative_f_wrt_x, derivative_f_wrt_y, derivative_f_wrt_z]
+	print(gradient_f_wrt_xyz)
+	#return gradient_f_wrt_xyz
 
+	#Inputs respond to the force/tug
+	x += step_size * derivative_f_wrt_x
+	y += step_size * derivative_f_wrt_y
+	z += step_size * derivative_f_wrt_z
+
+	q, f = forwardCircuit(x, y, z)
+	print(q, f)
+
+def numericalGradient(x, y, z):
+	h = 0.0001
+	x_derivative = (forward_circuit(x+h,y,z) - forward_circuit(x,y,z)) / h
+	y_derivative = (forward_circuit(x,y+h,z) - forward_circuit(x,y,z)) / h
+	z_derivative = (forward_circuit(x,y,z+h) - forward_circuit(x,y,z)) / h
+	return [x_derivative, y_derivative, z_derivative]
+
+
+#Single Neuron
+'''
+2 dimensional neuron that computes following function
+f(x,y,a,b,c) = sigma(ax+by+c)
+sigma - sigmoid function
+Squashing function - very negative values are squashed towards zero and very positive
+values are squashed towards 1
+
+sigma(x) = 1 / 1 + e^-x
+
+gradient wrt single input
+d(sigma(x))/dx = sigma(x)/(1-sigma(x))
+'''
+class Unit(object):
+	def __init__(self, value=0, grad=0):
+		self.value = value 
+		self.grad = grad 
+
+#Multiply gate class
+class multiplyGate(object):
+	def __init__(self):
+		self.u0 = Unit()
+		self.u1 = Unit()
+		self.utop = None
+
+	def forward(self, u0, u1):
+		self.u0 = u0
+		self.u1 = u1
+		self.utop = Unit(u0.value * u1.value, 0.0)
+		return self.utop
+
+	def backward(self):
+		self.u0.grad += self.u1.value * self.utop.grad 
+		self.u1.grad += self.u0.value * self.utop.grad 
+
+#Addition Gate Class
+class addGate(object):
+	def __init__(self):
+
+	def forward(self, u0, u1):
+		self.u0 = u0
+		self.u1 = u1 
+		self.utop = Unit(u0.value + u1.value, 0.0)
+
+	def backward(self):
+		#Add gate. Derivative wrt both inputs is 1
+		self.u0.grad += 1 * self.utop.grad 
+		self.u1.grad += 1 * self.utop.grad 
+
+#Sigmoid Gate class
+class sigmoidGate(object):
+	def __init__(self):
+		self.sigmoid = None
+
+	def sig(self, x):
+		self.sigmoid = 1 / (1 + math.exp(-x))
+		return self.sigmoid 
+
+	def forward(self, u0):
+		self.u0 = u0 
+		self.utop = Unit()
 
